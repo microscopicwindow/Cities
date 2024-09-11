@@ -22,7 +22,7 @@
 </head>
 <body>
     <h1>City Finder</h1>
-    <p>CCClick the button to find cities along the direction you're facing.</p>
+    <p>CKlick the button to find cities along the direction you're facing.</p>
     <button onclick="findCities()">Find Cities</button>
     <ul id="citiesList"></ul>
 
@@ -137,6 +137,26 @@
 ];
 
 
+
+        // Function to calculate the bearing from the user's location to a city
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                      Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            const bearing = Math.atan2(y, x) * (180 / Math.PI);
+            return (bearing + 360) % 360; // Normalize to 0-360 degrees
+        }
+
+        // Function to determine if a city is along the line of sight based on heading
+        function isCityAlongLine(userLat, userLon, heading, cityLat, cityLon) {
+            const bearingToCity = calculateBearing(userLat, userLon, cityLat, cityLon);
+            const angleDifference = Math.abs(heading - bearingToCity);
+            const threshold = 20; // Define how precise the alignment should be (in degrees)
+
+            return angleDifference <= threshold || angleDifference >= (360 - threshold);
+        }
+
         // Function to calculate distance between two coordinates using the Haversine formula
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Earth radius in kilometers
@@ -148,19 +168,6 @@
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
-        }
-
-        // Function to determine if a city is along the line of sight based on heading
-        function isCityAlongLine(userLat, userLon, heading, cityLat, cityLon) {
-            const headingRad = heading * (Math.PI / 180);
-            const expectedLon = userLon + Math.cos(headingRad) * 0.1; // Adjust threshold as needed
-            const expectedLat = userLat + Math.sin(headingRad) * 0.1;
-            const threshold = 0.5; // Adjust this as necessary
-
-            return (
-                Math.abs(cityLat - expectedLat) < threshold &&
-                Math.abs(cityLon - expectedLon) < threshold
-            );
         }
 
         // Function to get and display cities along the line of sight
@@ -184,4 +191,3 @@
     </script>
 </body>
 </html>
-
