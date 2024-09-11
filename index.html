@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Finder</title>
+</head>
+<body>
+    <h1>City Finder</h1>
+    <p>Click the button to find cities along the direction you're facing.</p>
+    <button onclick="findCities()">Find Cities</button>
+    <p id="status"></p>
+    <ul id="citiesList"></ul>
+
+    <script>
+        // Sample city data: name, latitude, longitude
+        const cities = [
+    // Major Cities
+    { name: "Phoenix, AZ", lat: 33.4484, lon: -112.0740 },
+    { name: "Tucson, AZ", lat: 32.2226, lon: -110.9747 },
+    { name: "Flagstaff, AZ", lat: 35.1983, lon: -111.6513 },
+    { name: "Prescott, AZ", lat: 34.5400, lon: -112.4685 },
+    { name: "Las Vegas, NV", lat: 36.1699, lon: -115.1398 },
+    { name: "Henderson, NV", lat: 36.0395, lon: -114.9817 },
+    { name: "Reno, NV", lat: 39.5296, lon: -119.8138 },
+    { name: "Los Angeles, CA", lat: 34.0522, lon: -118.2437 },
+    { name: "San Diego, CA", lat: 32.7157, lon: -117.1611 },
+    { name: "Anaheim, CA", lat: 33.8366, lon: -117.9143 },
+    { name: "Long Beach, CA", lat: 33.7701, lon: -118.1937 },
+    { name: "Riverside, CA", lat: 33.9806, lon: -117.3755 },
+    { name: "Palm Springs, CA", lat: 33.8303, lon: -116.5453 },
+    { name: "Yuma, AZ", lat: 32.6927, lon: -114.6277 },
+    { name: "El Paso, TX", lat: 31.7619, lon: -106.4850 },
+    { name: "Albuquerque, NM", lat: 35.0844, lon: -106.6504 },
+    { name: "Santa Fe, NM", lat: 35.6870, lon: -105.9378 },
+    { name: "Denver, CO", lat: 39.7392, lon: -104.9903 },
+    { name: "Colorado Springs, CO", lat: 38.8339, lon: -104.8214 },
+    { name: "Salt Lake City, UT", lat: 40.7608, lon: -111.8910 },
+    { name: "Provo, UT", lat: 40.2338, lon: -111.6585 },
+    { name: "St. George, UT", lat: 37.0965, lon: -113.5684 },
+    { name: "Las Cruces, NM", lat: 32.3199, lon: -106.7637 },
+    { name: "Mesa, AZ", lat: 33.4152, lon: -111.8315 },
+    { name: "Scottsdale, AZ", lat: 33.4942, lon: -111.9261 },
+    { name: "Chandler, AZ", lat: 33.3062, lon: -111.8413 },
+    { name: "Glendale, AZ", lat: 33.5387, lon: -112.1860 },
+    { name: "Gilbert, AZ", lat: 33.3528, lon: -111.7890 },
+    { name: "Tempe, AZ", lat: 33.4255, lon: -111.9400 },
+    { name: "Peoria, AZ", lat: 33.5806, lon: -112.2374 },
+    { name: "Surprise, AZ", lat: 33.6292, lon: -112.3679 },
+    { name: "Lake Havasu City, AZ", lat: 34.4839, lon: -114.3225 },
+    { name: "Kingman, AZ", lat: 35.1894, lon: -114.0530 },
+    
+    // Minor Cities and Towns
+    { name: "Avondale, AZ", lat: 33.4356, lon: -112.3496 },
+    { name: "Buckeye, AZ", lat: 33.3703, lon: -112.5838 },
+    { name: "Casa Grande, AZ", lat: 32.8795, lon: -111.7574 },
+    { name: "Maricopa, AZ", lat: 33.0581, lon: -112.0476 },
+    { name: "Apache Junction, AZ", lat: 33.4150, lon: -111.5496 },
+    { name: "Queen Creek, AZ", lat: 33.2487, lon: -111.6343 },
+    { name: "Goodyear, AZ", lat: 33.4353, lon: -112.3582 },
+    { name: "Sedona, AZ", lat: 34.8697, lon: -111.7609 },
+    { name: "Bullhead City, AZ", lat: 35.1359, lon: -114.5286 },
+    { name: "Sierra Vista, AZ", lat: 31.5455, lon: -110.2773 },
+    { name: "Nogales, AZ", lat: 31.3404, lon: -110.9343 },
+    { name: "Douglas, AZ", lat: 31.3445, lon: -109.5458 },
+    { name: "Eloy, AZ", lat: 32.7559, lon: -111.5542 },
+    { name: "Globe, AZ", lat: 33.3943, lon: -110.7943 },
+    { name: "Winslow, AZ", lat: 35.0242, lon: -110.6974 },
+    { name: "Show Low, AZ", lat: 34.2542, lon: -110.0298 },
+    { name: "Payson, AZ", lat: 34.2309, lon: -111.3251 },
+    { name: "Holbrook, AZ", lat: 34.9024, lon: -110.1582 },
+    { name: "Gallup, NM", lat: 35.5281, lon: -108.7426 },
+    { name: "Farmington, NM", lat: 36.7281, lon: -108.2187 },
+    { name: "Deming, NM", lat: 32.2687, lon: -107.7586 },
+    { name: "Carlsbad, NM", lat: 32.4207, lon: -104.2288 },
+    { name: "Blythe, CA", lat: 33.6170, lon: -114.5883 },
+    { name: "Barstow, CA", lat: 34.8958, lon: -117.0173 },
+    { name: "Victorville, CA", lat: 34.5361, lon: -117.2912 },
+    { name: "Indio, CA", lat: 33.7206, lon: -116.2156 },
+    { name: "Bakersfield, CA", lat: 35.3733, lon: -119.0187 },
+    { name: "Visalia, CA", lat: 36.3302, lon: -119.2921 },
+    { name: "Santa Maria, CA", lat: 34.9530, lon: -120.4357 },
+    { name: "San Luis Obispo, CA", lat: 35.2828, lon: -120.6596 },
+    { name: "Cedar City, UT", lat: 37.6775, lon: -113.0619 },
+    { name: "Moab, UT", lat: 38.5733, lon: -109.5498 },
+    { name: "Montrose, CO", lat: 38.4783, lon: -107.8762 },
+    { name: "Durango, CO", lat: 37.2753, lon: -107.8801 }
+];
+
+
+        let latitude, longitude, heading;
+
+        // Function to initiate finding cities
+        function findCities() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                    document.getElementById('status').textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
+
+                    if (window.DeviceOrientationEvent) {
+                        window.addEventListener('deviceorientation', (event) => {
+                            heading = event.alpha; // Heading in degrees
+                            document.getElementById('status').textContent += `, Heading: ${heading}`;
+                            getCitiesAlongLine();
+                        });
+                    } else {
+                        alert("Device orientation not supported");
+                    }
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Function to calculate distance between two coordinates using the Haversine formula
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth radius in kilometers
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Function to determine if a city is along the line of sight based on heading
+        function isCityAlongLine(userLat, userLon, heading, cityLat, cityLon) {
+            // Convert heading to radians
+            const headingRad = heading * (Math.PI / 180);
+
+            // Calculate a point along the heading line from the user's position
+            const expectedLon = userLon + Math.cos(headingRad) * 0.1; // 0.1 is an arbitrary small distance
+            const expectedLat = userLat + Math.sin(headingRad) * 0.1;
+
+            // Define a threshold distance (in degrees) to consider the city along the line
+            const threshold = 0.5; // Adjust this as necessary
+
+            // Check if the city's coordinates are within the threshold range
+            return (
+                Math.abs(cityLat - expectedLat) < threshold &&
+                Math.abs(cityLon - expectedLon) < threshold
+            );
+        }
+
+        // Function to get and display cities along the line of sight
+        function getCitiesAlongLine() {
+            const nearbyCities = cities
+                .filter(city => isCityAlongLine(latitude, longitude, heading, city.lat, city.lon))
+                .map(city => ({
+                    name: city.name,
+                    distance: getDistance(latitude, longitude, city.lat, city.lon)
+                }))
+                .sort((a, b) => a.distance - b.distance); // Sort cities by distance
+
+            const citiesList = document.getElementById('citiesList');
+            citiesList.innerHTML = '';
+            nearbyCities.forEach(city => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${city.name} (${city.distance.toFixed(2)} km)`;
+                citiesList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+</html>
