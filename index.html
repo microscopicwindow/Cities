@@ -5,16 +5,64 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>City Finder</title>
+    <style>
+        /* Styling for the fixed display area */
+        #infoBox {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
     <h1>City Finder</h1>
-    <p>Click the button to find cities along the direction you're facing.</p>
+    <p>CCClick the button to find cities along the direction you're facing.</p>
     <button onclick="findCities()">Find Cities</button>
-    <p id="status"></p>
     <ul id="citiesList"></ul>
 
+    <!-- Dedicated info display area -->
+    <div id="infoBox">
+        <p id="status">Awaiting location...</p>
+    </div>
+
     <script>
-        // Sample city data: name, latitude, longitude
+        let latitude, longitude, heading;
+
+        function findCities() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                    updateStatus();
+
+                    if (window.DeviceOrientationEvent) {
+                        window.addEventListener('deviceorientation', (event) => {
+                            heading = event.alpha; // Heading in degrees
+                            updateStatus();
+                            getCitiesAlongLine();
+                        });
+                    } else {
+                        alert("Device orientation not supported");
+                    }
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Function to update the fixed display area with the latest coordinates and heading
+        function updateStatus() {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = `Latitude: ${latitude.toFixed(4)}, Longitude: ${longitude.toFixed(4)}, Heading: ${heading ? heading.toFixed(2) : 'Calculating...'}`;
+        }
+
+        // Sample list of cities
         const cities = [
     // Major Cities
     { name: "Phoenix, AZ", lat: 33.4484, lon: -112.0740 },
@@ -89,31 +137,6 @@
 ];
 
 
-        let latitude, longitude, heading;
-
-        // Function to initiate finding cities
-        function findCities() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    latitude = position.coords.latitude;
-                    longitude = position.coords.longitude;
-                    document.getElementById('status').textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
-
-                    if (window.DeviceOrientationEvent) {
-                        window.addEventListener('deviceorientation', (event) => {
-                            heading = event.alpha; // Heading in degrees
-                            document.getElementById('status').textContent += `, Heading: ${heading}`;
-                            getCitiesAlongLine();
-                        });
-                    } else {
-                        alert("Device orientation not supported");
-                    }
-                });
-            } else {
-                alert("Geolocation is not supported by this browser.");
-            }
-        }
-
         // Function to calculate distance between two coordinates using the Haversine formula
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Earth radius in kilometers
@@ -129,17 +152,11 @@
 
         // Function to determine if a city is along the line of sight based on heading
         function isCityAlongLine(userLat, userLon, heading, cityLat, cityLon) {
-            // Convert heading to radians
             const headingRad = heading * (Math.PI / 180);
-
-            // Calculate a point along the heading line from the user's position
-            const expectedLon = userLon + Math.cos(headingRad) * 0.1; // 0.1 is an arbitrary small distance
+            const expectedLon = userLon + Math.cos(headingRad) * 0.1; // Adjust threshold as needed
             const expectedLat = userLat + Math.sin(headingRad) * 0.1;
-
-            // Define a threshold distance (in degrees) to consider the city along the line
             const threshold = 0.5; // Adjust this as necessary
 
-            // Check if the city's coordinates are within the threshold range
             return (
                 Math.abs(cityLat - expectedLat) < threshold &&
                 Math.abs(cityLon - expectedLon) < threshold
@@ -167,3 +184,4 @@
     </script>
 </body>
 </html>
+
