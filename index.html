@@ -37,7 +37,7 @@
 </head>
 <body>
     <h1>City Finder</h1>
-    <p>Click the button to find cities along the direction you're facing..</p>
+    <p>Press on the button to find cities along the direction you're facing.</p>
     <button onclick="findCities()">Find Cities</button>
     <ul id="citiesList"></ul>
 
@@ -60,18 +60,37 @@
                     longitude = position.coords.longitude;
                     updateStatus();
 
-                    if (window.DeviceOrientationEvent) {
-                        window.addEventListener('deviceorientation', (event) => {
-                            heading = event.alpha; // Heading in degrees
-                            updateStatus();
-                            getCitiesAlongLine();
-                        });
+                    // Use absolute orientation to ensure consistent heading
+                    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        // Request permission for iOS devices
+                        DeviceOrientationEvent.requestPermission()
+                            .then(permissionState => {
+                                if (permissionState === 'granted') {
+                                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                                } else {
+                                    alert('Permission to access device orientation was denied.');
+                                }
+                            })
+                            .catch(console.error);
                     } else {
-                        alert("Device orientation not supported");
+                        // For other devices
+                        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
                     }
                 });
             } else {
                 alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Function to handle the orientation event and update the heading
+        function handleOrientation(event) {
+            if (event.absolute && event.alpha !== null) {
+                // Use event.alpha which gives absolute heading relative to true north
+                heading = event.alpha;
+                updateStatus();
+                getCitiesAlongLine();
+            } else {
+                alert("Absolute orientation is not supported.");
             }
         }
 
@@ -80,6 +99,7 @@
             const statusElement = document.getElementById('status');
             statusElement.textContent = `Latitude: ${latitude.toFixed(4)}, Longitude: ${longitude.toFixed(4)}, Heading: ${heading ? heading.toFixed(2) : 'Calculating...'}`;
         }
+
 
         // Major cities
         const majorCities = [
@@ -206,6 +226,7 @@
     { name: "San Luis Obispo, CA", lat: 35.2828, lon: -120.6596 }
             // Add more minor cities as needed
         ];
+
 
         // Combine cities based on toggle state
         function getFilteredCities() {
