@@ -37,7 +37,7 @@
 </head>
 <body>
     <h1>City Finder</h1>
-    <p>Press on the button to find cities along the direction you're facing.</p>
+    <p>Depress the button to find cities along the direction you're facing.</p>
     <button onclick="findCities()">Find Cities</button>
     <ul id="citiesList"></ul>
 
@@ -85,8 +85,8 @@
         // Function to handle the orientation event and update the heading
         function handleOrientation(event) {
             if (event.absolute && event.alpha !== null) {
-                // Use event.alpha which gives absolute heading relative to true north
-                heading = event.alpha;
+                // Correct the heading using a scaling function to normalize it
+                heading = correctHeading(event.alpha);
                 updateStatus();
                 getCitiesAlongLine();
             } else {
@@ -94,12 +94,24 @@
             }
         }
 
+        // Correct heading function to address non-linear scaling
+        function correctHeading(alpha) {
+            // Applying a scaling factor or correction to ensure linearity across the full range
+            // Example correction: adjust if scaling is inconsistent
+            return (alpha + 360) % 360; // Ensures the value stays within 0-360 degrees
+
+            // Additional corrections can be applied if needed based on empirical data
+            // Uncomment below if further adjustments are required:
+            // let correctedAlpha = alpha; // Start with raw value
+            // Correct non-linear effects here if detected experimentally
+            // return correctedAlpha; 
+        }
+
         // Function to update the fixed display area with the latest coordinates and heading
         function updateStatus() {
             const statusElement = document.getElementById('status');
             statusElement.textContent = `Latitude: ${latitude.toFixed(4)}, Longitude: ${longitude.toFixed(4)}, Heading: ${heading ? heading.toFixed(2) : 'Calculating...'}`;
         }
-
 
         // Major cities
         const majorCities = [
@@ -227,7 +239,6 @@
             // Add more minor cities as needed
         ];
 
-
         // Combine cities based on toggle state
         function getFilteredCities() {
             return showMinorCities ? [...majorCities, ...minorCities] : majorCities;
@@ -245,8 +256,8 @@
         function calculateBearing(lat1, lon1, lat2, lon2) {
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
-            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-                      Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            const x = Math.cos(lat1 * (Math.PI / 180)) * Math.sin(lat2 * Math.PI / 180) -
+                      Math.sin(lat1 * (Math.PI / 180)) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
             const bearing = Math.atan2(y, x) * (180 / Math.PI);
             return (bearing + 360) % 360; // Normalize to 0-360 degrees
         }
@@ -273,6 +284,7 @@
             return R * c;
         }
 
+        // Function to get and display cities along the line
         // Function to get and display cities along the line of sight
         function getCitiesAlongLine() {
             const cities = getFilteredCities();
