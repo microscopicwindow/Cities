@@ -18,11 +18,26 @@
             font-family: Arial, sans-serif;
             z-index: 1000;
         }
+
+        /* Styling for the toggle button */
+        #toggleMinorCities {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <h1>City Finder</h1>
-    <p>Press the button to find cities along the direction you're facing.</p>
+    <p>Click the button to find cities along the direction you're facing..</p>
     <button onclick="findCities()">Find Cities</button>
     <ul id="citiesList"></ul>
 
@@ -31,8 +46,12 @@
         <p id="status">Awaiting location...</p>
     </div>
 
+    <!-- Toggle button for minor cities -->
+    <button id="toggleMinorCities" onclick="toggleMinorCities()">Hide Minor Cities</button>
+
     <script>
         let latitude, longitude, heading;
+        let showMinorCities = true; // Toggle state for minor cities
 
         function findCities() {
             if (navigator.geolocation) {
@@ -62,9 +81,8 @@
             statusElement.textContent = `Latitude: ${latitude.toFixed(4)}, Longitude: ${longitude.toFixed(4)}, Heading: ${heading ? heading.toFixed(2) : 'Calculating...'}`;
         }
 
-        // Sample list of cities
-const cities = [
-    // Major U.S. Cities
+        // Major cities
+        const majorCities = [
     { name: "New York, NY", lat: 40.7128, lon: -74.0060 },
     { name: "Los Angeles, CA", lat: 34.0522, lon: -118.2437 },
     { name: "Chicago, IL", lat: 41.8781, lon: -87.6298 },
@@ -116,8 +134,11 @@ const cities = [
     { name: "Aurora, CO", lat: 39.7294, lon: -104.8319 },
     { name: "Anaheim, CA", lat: 33.8366, lon: -117.9143 },
     { name: "Honolulu, HI", lat: 21.3069, lon: -157.8583 },
+            // Add more major cities as needed
+        ];
 
-    // Expanded list of Minor Cities and Towns
+        // Minor cities
+        const minorCities = [
     { name: "Tempe, AZ", lat: 33.4255, lon: -111.9400 },
     { name: "Scottsdale, AZ", lat: 33.4942, lon: -111.9261 },
     { name: "Mesa, AZ", lat: 33.4152, lon: -111.8315 },
@@ -183,8 +204,21 @@ const cities = [
     { name: "Visalia, CA", lat: 36.3302, lon: -119.2921 },
     { name: "Santa Maria, CA", lat: 34.9530, lon: -120.4357 },
     { name: "San Luis Obispo, CA", lat: 35.2828, lon: -120.6596 }
-];
+            // Add more minor cities as needed
+        ];
 
+        // Combine cities based on toggle state
+        function getFilteredCities() {
+            return showMinorCities ? [...majorCities, ...minorCities] : majorCities;
+        }
+
+        // Toggle the display of minor cities
+        function toggleMinorCities() {
+            showMinorCities = !showMinorCities;
+            const toggleButton = document.getElementById('toggleMinorCities');
+            toggleButton.textContent = showMinorCities ? 'Hide Minor Cities' : 'Show Minor Cities';
+            getCitiesAlongLine(); // Update the displayed list
+        }
 
         // Function to calculate the bearing from the user's location to a city
         function calculateBearing(lat1, lon1, lat2, lon2) {
@@ -220,6 +254,7 @@ const cities = [
 
         // Function to get and display cities along the line of sight
         function getCitiesAlongLine() {
+            const cities = getFilteredCities();
             const nearbyCities = cities
                 .filter(city => isCityAlongLine(latitude, longitude, heading, city.lat, city.lon))
                 .map(city => ({
